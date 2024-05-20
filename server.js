@@ -121,15 +121,12 @@ app.get('/error', (req, res) => {
 
 // Additional routes that you must implement
 
-
-app.get('/post/:id', (req, res) => {
-    // TODO: Render post detail page
-});
 app.post('/posts', (req, res) => {
     addPost(req.body.title, req.body.content, req.body.username);
     res.redirect('/');
 });
 app.post('/like/:id', (req, res) => {
+    console.log('like route taken');
     updatePostLikes(req, res);
 });
 app.get('/profile', isAuthenticated, (req, res) => {
@@ -149,19 +146,7 @@ app.get('/logout', (req, res) => {
 });
 app.post('/delete/:id', isAuthenticated, (req, res) => {
     // TODO: Delete a post if the current user is the owner
-    let curPost = posts.find(post => post.id === req.params.id);
-    let curPostUser = users.find(user => user.username === curPost.username);
-    if (!curPost) {
-        // post not found
-        res.redirect('posts?error=Invalid+username');
-    }
-    if (curPostUser.id === req.session.userId) {
-        // post exist and the current user is owner
-        posts = posts.filter(post => post.id !== curPost.id);
-        res.redirect('/');
-    } else {
-        res.redirect('posts?error=User+not+authorized+to+delete+post');
-    }
+    deletePost(req, res);
 });
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -178,8 +163,8 @@ app.listen(PORT, () => {
 
 // Example data for posts and users
 let posts = [
-    { id: 1, title: 'Sample Post', content: 'This is a sample post.', username: 'SampleUser', timestamp: '2024-01-01 10:00', likes: 0 },
-    { id: 2, title: 'Another Post', content: 'This is another sample post.', username: 'AnotherUser', timestamp: '2024-01-02 12:00', likes: 0 },
+    { id: 1, title: 'Sample Post', content: 'This is a sample post.', username: 'SampleUser', timestamp: '2024-01-01 10:00', likes: 0, likers: []},
+    { id: 2, title: 'Another Post', content: 'This is another sample post.', username: 'AnotherUser', timestamp: '2024-01-02 12:00', likes: 0, likers: []},
 ];
 let users = [
     { id: 1, username: 'SampleUser', avatar_url: undefined, memberSince: '2024-01-01 08:00' },
@@ -261,19 +246,37 @@ function renderProfile(req, res) {
 // Function to update post likes
 function updatePostLikes(req, res) {
     // TODO: Increment post likes if conditions are met
+    const postId = parseInt(req.params.id);
+    let curPost = posts.find(post => post.id === postId);
+    const curUser = getCurrentUser(req);
+    console.log(curPost);
+    console.log(curUser);
+    if (!curPost.likers.includes(curUser.username)) {
+        // if current user didnt already like post
+        curPost.likers.push(curUser.username);
+        curPost.likes++;
+    } else {
+        // user alr liked, so unlike post
+        const index = curPost.likers.indexOf(curUser.username);
+        curPost.likers.splice(index, 1);
+        curPost.likes--;
+    }
+    console.log(curPost);
+    // send response w/ numLikes
+    res.send({ likes: curPost.likes });
 }
 
 // Function to handle avatar generation and serving
 function handleAvatar(req, res) {
     // TODO: Generate and serve the user's avatar image
-    let username = req.body.username;
-    generateAvatar(username[0]);
+    //let username = req.body.username;
+    //generateAvatar(username[0]);
 
 }
 
 // Function to get the current user from session
 function getCurrentUser(req) {
-    return users.find(user => user.id === req.session.userId);
+    return findUserById(req.session.userId);
 }
 
 // Function to get all posts, sorted by latest first
@@ -285,6 +288,22 @@ function getPosts() {
 function addPost(title, content, user) {
     let newPost = { id: posts[posts.length.id-1] + 1, title: title, content: content, username: user, timestamp: getCurTime(), likes: 0 };
     posts.add(newPost);
+}
+
+function deletePost(req, res) {
+    let curPost = posts.find(post => post.id === req.params.id);
+    let curPostUser = findUserByUsername(curPost.username);
+    if (!curPost) {
+        // post not found
+        res.redirect('posts?error=Invalid+username');
+    }
+    if (curPostUser.id === req.session.userId) {
+        // post exist and the current user is owner
+        posts = posts.filter(post => post.id !== curPost.id);
+        res.redirect('/');
+    } else {
+        res.redirect('posts?error=User+not+authorized+to+delete+post');
+    }
 }
 
 // Function to generate an image avatar
