@@ -126,28 +126,42 @@ app.get('/post/:id', (req, res) => {
     // TODO: Render post detail page
 });
 app.post('/posts', (req, res) => {
-    // TODO: Add a new post and redirect to home
+    addPost(req.body.title, req.body.content, req.body.username);
+    res.redirect('/');
 });
 app.post('/like/:id', (req, res) => {
-    // TODO: Update post likes
+    updatePostLikes(req, res);
 });
 app.get('/profile', isAuthenticated, (req, res) => {
-    // TODO: Render profile page
+    renderProfile(req, res);
 });
 app.get('/avatar/:username', (req, res) => {
-    // TODO: Serve the avatar image for the user
+    handleAvatar(req, res);
 });
 app.post('/register', (req, res) => {
-    // TODO: Register a new user
+    registerUser(req, res);
 });
 app.post('/login', (req, res) => {
-    // TODO: Login a user
+    loginUser(req, res);
 });
 app.get('/logout', (req, res) => {
-    // TODO: Logout the user
+    logoutUser(req, res);
 });
 app.post('/delete/:id', isAuthenticated, (req, res) => {
     // TODO: Delete a post if the current user is the owner
+    let curPost = posts.find(post => post.id === req.params.id);
+    let curPostUser = users.find(user => user.username === curPost.username);
+    if (!curPost) {
+        // post not found
+        res.redirect('posts?error=Invalid+username');
+    }
+    if (curPostUser.id === req.session.userId) {
+        // post exist and the current user is owner
+        posts = posts.filter(post => post.id !== curPost.id);
+        res.redirect('/');
+    } else {
+        res.redirect('posts?error=User+not+authorized+to+delete+post');
+    }
 });
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -174,17 +188,19 @@ let users = [
 
 // Function to find a user by username
 function findUserByUsername(username) {
-    // TODO: Return user object if found, otherwise return undefined
+    return users.find(user => user.username === username);
 }
 
 // Function to find a user by user ID
 function findUserById(userId) {
-    // TODO: Return user object if found, otherwise return undefined
+    return users.find(user => user.id === userId);
 }
 
 // Function to add a new user
 function addUser(username) {
-    // TODO: Create a new user object and add to users array
+    let newUser = { id: users[users.length-1].id + 1, username: username, avatar_url: undefined, memberSince: getCurTime() };
+    users.push(newUser);
+    console.log(users);
 }
 
 // Middleware to check if user is authenticated
@@ -199,22 +215,47 @@ function isAuthenticated(req, res, next) {
 
 // Function to register a user
 function registerUser(req, res) {
-    // TODO: Register a new user and redirect appropriately
+    const username = req.body.username;
+    console.log('Attempting to register:', username);
+    if (findUserByUsername(username)) {
+        res.redirect('/register?error=Username+already+exists');
+    } else {
+        addUser(username);
+        res.redirect('/login');
+    }
 }
 
 // Function to login a user
 function loginUser(req, res) {
-    // TODO: Login a user and redirect appropriately
+    const username = req.body.username;
+    const user = findUserByUsername(username);
+
+    if (user) {
+        req.session.userId = user.id;
+        req.session.loggedIn = true;
+        res.redirect('/');
+    } else {
+        res.redirect('login?error=Invalid+username');
+    }
 }
 
 // Function to logout a user
 function logoutUser(req, res) {
-    // TODO: Destroy session and redirect appropriately
+    req.session.destroy(err => {
+        if (err) {
+            console.error('Error destroying session:', err);
+            res.redirect('/error');
+        } else {
+            res.redirect('/');
+        }
+    });
 }
 
 // Function to render the profile page
 function renderProfile(req, res) {
     // TODO: Fetch user posts and render the profile page
+    const user = getCurrentUser(req) || {};
+    res.render('profile', {user})
 }
 
 // Function to update post likes
@@ -225,11 +266,14 @@ function updatePostLikes(req, res) {
 // Function to handle avatar generation and serving
 function handleAvatar(req, res) {
     // TODO: Generate and serve the user's avatar image
+    let username = req.body.username;
+    generateAvatar(username[0]);
+
 }
 
 // Function to get the current user from session
 function getCurrentUser(req) {
-    // TODO: Return the user object if the session user ID matches
+    return users.find(user => user.id === req.session.userId);
 }
 
 // Function to get all posts, sorted by latest first
@@ -239,7 +283,8 @@ function getPosts() {
 
 // Function to add a new post
 function addPost(title, content, user) {
-    // TODO: Create a new post object and add to posts array
+    let newPost = { id: posts[posts.length.id-1] + 1, title: title, content: content, username: user, timestamp: getCurTime(), likes: 0 };
+    posts.add(newPost);
 }
 
 // Function to generate an image avatar
@@ -251,4 +296,27 @@ function generateAvatar(letter, width = 100, height = 100) {
     // 3. Draw the background color
     // 4. Draw the letter in the center
     // 5. Return the avatar as a PNG buffer
+}
+
+function getCurTime() {
+// function via stack overflow user video-reviews.net
+    let now     = new Date(); 
+    let year    = now.getFullYear();
+    let month   = now.getMonth()+1; 
+    let day     = now.getDate();
+    let hour    = now.getHours();
+    let minute  = now.getMinutes();
+    if (month.toString().length == 1) {
+         month = '0'+month;
+    }
+    if (day.toString().length == 1) {
+         day = '0'+day;
+    }   
+    if (hour.toString().length == 1) {
+         hour = '0'+hour;
+    }
+    if (minute.toString().length == 1) {
+         minute = '0'+minute;
+    }
+    return year+'-'+month+'-'+day+' '+hour+':'+minute;
 }
