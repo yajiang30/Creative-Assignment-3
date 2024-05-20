@@ -286,14 +286,20 @@ function getPosts() {
 
 // Function to add a new post
 function addPost(title, content, user) {
-    let newPost = { id: posts[posts.length.id-1] + 1, title: title, content: content, username: user, timestamp: getCurTime(), likes: 0 };
-    posts.add(newPost);
+    console.log(title);
+    console.log(content);
+    console.log(user);
+    let newPost = { id: posts[posts.length-1].id + 1, title: title, content: content, username: user, timestamp: getCurTime(), likes: 0, likers: [] };
+    posts.push(newPost);
+    console.log(posts);
 }
 
 function deletePost(req, res) {
     console.log('func');
     const postId = parseInt(req.params.id);
+    console.log(postId);
     let curPost = posts.find(post => post.id === postId);
+    console.log(curPost);
     let curPostUser = findUserByUsername(curPost.username);
     if (!curPost) {
         // post not found
