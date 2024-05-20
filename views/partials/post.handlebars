@@ -1,5 +1,5 @@
 {{! Partial for a single post }}
-<div class="post">
+<div class="post" id="post{{this.id}}">
     <div class="post-avatar">
         <!-- the user's avatar -->
     </div>
@@ -7,7 +7,7 @@
         <!-- the post -->
         <h3>{{this.title}}</h3>
         <p>{{this.content}}</p>
-        <div class="post-status-bar" id="post{{this.id}}">
+        <div class="post-status-bar">
             <!-- everything that is shown in the status bar -->
             <!-- Heart = ♥ -->
             <!-- font awesome  trashcan = <i class="fas fa-trash-alt"> </i>-->
@@ -42,7 +42,13 @@
         const buttonElement = event.target.closest('.delete-button');
         const postId = buttonElement.getAttribute('data-id');        
 
-        // you might want to "fetch" something...        
+        // you might want to "fetch" something... 
+        fetch(`/delete/${postId}`, {
+            method: 'POST'
+        })
+        .then(statusCheck)
+        .then(res => processData(res, postId))
+        .catch(error => console.error(error));
     }    
 
     function updateLikeCount(res, postId) {
@@ -55,7 +61,7 @@
         if (!likeCountElement) {
             throw new Error('Like count element not found')
         }
-        
+
         likeCountElement.innerText = `${res} Likes`;
     }
 
@@ -64,6 +70,23 @@
         throw new Error('Failed to fetch: ' + res.statusText);
     }
     return res.json();  // Assuming the response is in JSON format
-}
+    }
+
+    function removePostFromDOM(postId) {
+        const post = document.getElementById(`post${postId}`);
+        if (post) {
+            post.remove();
+        } else {
+            throw new error('Post not found');
+        }
+    }
+
+    function processData(res, postId) {
+        if(res.success) {
+            removePostFromDOM(postId);
+        } else {
+            throw new error('Failed to delete post. Try again later.');
+        }
+    }
 
 </script>

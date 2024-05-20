@@ -291,7 +291,9 @@ function addPost(title, content, user) {
 }
 
 function deletePost(req, res) {
-    let curPost = posts.find(post => post.id === req.params.id);
+    console.log('func');
+    const postId = parseInt(req.params.id);
+    let curPost = posts.find(post => post.id === postId);
     let curPostUser = findUserByUsername(curPost.username);
     if (!curPost) {
         // post not found
@@ -300,6 +302,7 @@ function deletePost(req, res) {
     if (curPostUser.id === req.session.userId) {
         // post exist and the current user is owner
         posts = posts.filter(post => post.id !== curPost.id);
+        res.json({success: true})
         res.redirect('/');
     } else {
         res.redirect('posts?error=User+not+authorized+to+delete+post');
