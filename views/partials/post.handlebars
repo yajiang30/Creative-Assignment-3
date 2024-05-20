@@ -5,10 +5,19 @@
     </div>
     <div class="post-content preserve-newlines">
         <!-- the post -->
+        <h3>{{this.title}}</h3>
+        <p>{{this.content}}</p>
         <div class="post-status-bar">
             <!-- everything that is shown in the status bar -->
             <!-- Heart = ♥ -->
             <!-- font awesome  trashcan = <i class="fas fa-trash-alt"> </i>-->
+            {{#ifCond this.username user.username}}
+                <button data-id="{{this.id}}" class="delete-button"><i class="fas fa-trash-alt"></i></button>
+            {{else}}
+                <button data-id="{{this.id}}">♥</button>
+            {{/ifCond}}
+            <p>{{this.likes}} Likes</p>
+            <p>Posted by {{this.username}} on {{this.timestamp}}</p>
         </div>        
     </div>
 </div>
@@ -25,6 +34,6 @@
         const postId = buttonElement.getAttribute('data-id');        
 
         // you might want to "fetch" something...        
-        
     }    
+
 </script>
