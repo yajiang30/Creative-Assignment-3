@@ -14,7 +14,7 @@ EMOJI_API_KEY={YOUR_EMOJI_API_KEY}
 ## Dependencies
 - MAKE SURE TO HAVE pkg-config downloaded to use canvas package. On mac run on terminal:
 ```
-brew install pkg-config
+$ brew install pkg-config
 ```
 - To confirm you have it installed. Run on terminal:
 ```
