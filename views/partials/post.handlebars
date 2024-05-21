@@ -24,7 +24,6 @@
 <script>
 
     function handleLikeClick(event) {
-        console.log('like button clicked');
         const postId = event.target.getAttribute('data-id');
 
         // you might want to "fetch" something...      
@@ -38,7 +37,6 @@
     }
 
     function handleDeleteClick(event) {
-        console.log('delete button clicked');
         const buttonElement = event.target.closest('.delete-button');
         const postId = buttonElement.getAttribute('data-id');        
 

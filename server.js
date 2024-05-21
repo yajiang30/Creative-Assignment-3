@@ -126,7 +126,6 @@ app.post('/posts', (req, res) => {
     res.redirect('/');
 });
 app.post('/like/:id', (req, res) => {
-    console.log('like route taken');
     updatePostLikes(req, res);
 });
 app.get('/profile', isAuthenticated, (req, res) => {
@@ -145,7 +144,6 @@ app.get('/logout', (req, res) => {
     logoutUser(req, res);
 });
 app.post('/delete/:id', isAuthenticated, (req, res) => {
-    // TODO: Delete a post if the current user is the owner
     deletePost(req, res);
 });
 
@@ -185,12 +183,10 @@ function findUserById(userId) {
 function addUser(username) {
     let newUser = { id: users[users.length-1].id + 1, username: username, avatar_url: undefined, memberSince: getCurTime() };
     users.push(newUser);
-    console.log(users);
 }
 
 // Middleware to check if user is authenticated
 function isAuthenticated(req, res, next) {
-    console.log(req.session.userId);
     if (req.session.userId) {
         next();
     } else {
@@ -245,12 +241,9 @@ function renderProfile(req, res) {
 
 // Function to update post likes
 function updatePostLikes(req, res) {
-    // TODO: Increment post likes if conditions are met
     const postId = parseInt(req.params.id);
     let curPost = posts.find(post => post.id === postId);
     const curUser = getCurrentUser(req);
-    console.log(curPost);
-    console.log(curUser);
     if (!curPost.likers.includes(curUser.username)) {
         // if current user didnt already like post
         curPost.likers.push(curUser.username);
@@ -261,7 +254,6 @@ function updatePostLikes(req, res) {
         curPost.likers.splice(index, 1);
         curPost.likes--;
     }
-    console.log(curPost);
     // send response w/ numLikes
     res.send({ likes: curPost.likes });
 }
@@ -269,8 +261,8 @@ function updatePostLikes(req, res) {
 // Function to handle avatar generation and serving
 function handleAvatar(req, res) {
     // TODO: Generate and serve the user's avatar image
-    //let username = req.body.username;
-    //generateAvatar(username[0]);
+    let username = req.body.username;
+    generateAvatar(username[0]);
 
 }
 
@@ -286,20 +278,13 @@ function getPosts() {
 
 // Function to add a new post
 function addPost(title, content, user) {
-    console.log(title);
-    console.log(content);
-    console.log(user);
     let newPost = { id: posts[posts.length-1].id + 1, title: title, content: content, username: user, timestamp: getCurTime(), likes: 0, likers: [] };
     posts.push(newPost);
-    console.log(posts);
 }
 
 function deletePost(req, res) {
-    console.log('func');
     const postId = parseInt(req.params.id);
-    console.log(postId);
     let curPost = posts.find(post => post.id === postId);
-    console.log(curPost);
     let curPostUser = findUserByUsername(curPost.username);
     if (!curPost) {
         // post not found
