@@ -30,7 +30,7 @@
 
     <section class="posts-list">
         <!-- recent posts -->
-        <h2>Recent Posts</h2>
+        <h2>Recent {{postNeoType}}</h2>
         {{#if posts.length}}
         <ul>
             {{#each posts}}
@@ -40,6 +40,7 @@
         </ul>
         {{else}}
             <!-- no posts, oh no, what now? -->
+            <p>No posts. Time to get posting!</p>
         {{/if}}
     </section>
 </section>

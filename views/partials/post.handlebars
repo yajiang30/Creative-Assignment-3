@@ -2,6 +2,13 @@
 <div class="post" id="post{{this.id}}">
     <div class="post-avatar">
         <!-- the user's avatar -->
+        <img src="{{#if user.avatar_url}}
+                        {{user.avatar_url}}
+                    {{else}}
+                        /avatar/{{this.username}}.body
+                    {{/if}}" 
+                    alt="User Avatar" 
+                    class="header-avatar">
     </div>
     <div class="post-content preserve-newlines">
         <!-- the post -->
@@ -47,6 +54,8 @@
         .then(statusCheck)
         .then(res => processData(res, postId))
         .catch(error => console.error(error));
+
+        location.reload();
     }    
 
     function updateLikeCount(res, postId) {

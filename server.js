@@ -1,8 +1,9 @@
 const express = require('express');
 const expressHandlebars = require('express-handlebars');
 const session = require('express-session');
-const canvas = require('canvas');
+const canvas = require('canvas')
 require('dotenv').config();
+const accessToken = process.env.EMOJI_API_KEY;
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // Configuration and Setup
@@ -84,7 +85,8 @@ app.use((req, res, next) => {
     next();
 });
 
-app.use(express.static('public'));                  // Serve static files
+//app.use(express.static('public'));                  // Serve static files
+app.use(express.static('public'));
 app.use(express.urlencoded({ extended: true }));    // Parse URL-encoded bodies (as sent by HTML forms)
 app.use(express.json());                            // Parse JSON bodies (as sent by API clients)
 
@@ -123,8 +125,8 @@ app.get('/error', (req, res) => {
 // Additional routes that you must implement
 
 app.get('/emojis', (req, res) => {
-    fetch(`https://emoji-api.com/emojis?access_key=${process.env.EMOJI_API_KEY}`)
-    .then(response => response.json())
+    fetch(`https://emoji-api.com/emojis?access_key=${accessToken}`)
+    .then(statusCheck)
     .then(response => res.send(response))
     .catch(error => console.error(error));
 });
@@ -269,9 +271,8 @@ function updatePostLikes(req, res) {
 // Function to handle avatar generation and serving
 function handleAvatar(req, res) {
     // TODO: Generate and serve the user's avatar image
-    let username = req.body.username;
-    generateAvatar(username[0]);
-
+    let username = req.params.username;
+    res.send(generateAvatar(username[0]));
 }
 
 // Function to get the current user from session
@@ -317,6 +318,32 @@ function generateAvatar(letter, width = 100, height = 100) {
     // 3. Draw the background color
     // 4. Draw the letter in the center
     // 5. Return the avatar as a PNG buffer
+    const myCanvas = new canvas.Canvas(width, height);
+    const ctx = myCanvas.getContext('2d');
+
+    // Choose a random color for the background
+    const randomColor = '#' + Math.floor(Math.random()*16777215).toString(16);
+
+    // Set the background color
+    ctx.fillStyle = randomColor;
+    ctx.fillRect(0, 0, width, height);
+
+    // Set up text properties for drawing the letter
+    const fontSize = Math.floor(Math.min(width, height) / 2); // Adjust font size relative to canvas size
+    ctx.font = `${fontSize}px Arial`; // Set font size and type
+    ctx.fillStyle = 'white'; // Color of the letter
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+
+    // Calculate the position to draw the letter at the center of the canvas
+    const x = width / 2;
+    const y = height / 2;
+
+    // Draw the letter in the center
+    ctx.fillText(letter, x, y);
+
+    // Return the avatar as a PNG buffer
+    return myCanvas.toBuffer('image/png');
 }
 
 function getCurTime() {
