@@ -1,6 +1,7 @@
 ## Features
-- All features are implemented.
+- All features for CA3 part A are implemented.
 - Only Login/Register page have CSS
+- Side Note: **Emojis take about 5 seconds to fetch the first time**
 
 ## Emoji API key
 - to be able to use emojis, you have to create an .env file
