@@ -226,7 +226,7 @@ function loginUser(req, res) {
         req.session.loggedIn = true;
         res.redirect('/');
     } else {
-        res.redirect('login?error=Invalid+username');
+        res.redirect('/login?error=Invalid+username');
     }
 }
 
@@ -270,7 +270,6 @@ function updatePostLikes(req, res) {
 
 // Function to handle avatar generation and serving
 function handleAvatar(req, res) {
-    // TODO: Generate and serve the user's avatar image
     let username = req.params.username;
     res.send(generateAvatar(username[0]));
 }
@@ -295,23 +294,15 @@ function deletePost(req, res) {
     const postId = parseInt(req.params.id);
     let curPost = posts.find(post => post.id === postId);
     let curPostUser = findUserByUsername(curPost.username);
-    if (!curPost) {
-        // post not found
-        res.redirect('posts?error=Invalid+username');
-    }
     if (curPostUser.id === req.session.userId) {
         // post exist and the current user is owner
         posts = posts.filter(post => post.id !== curPost.id);
-        res.json({success: true})
-        res.redirect('/');
-    } else {
-        res.redirect('posts?error=User+not+authorized+to+delete+post');
+        res.json({success: true});
     }
 }
 
 // Function to generate an image avatar
 function generateAvatar(letter, width = 100, height = 100) {
-    // TODO: Generate an avatar image with a letter
     // Steps:
     // 1. Choose a color scheme based on the letter
     // 2. Create a canvas with the specified width and height
@@ -320,12 +311,43 @@ function generateAvatar(letter, width = 100, height = 100) {
     // 5. Return the avatar as a PNG buffer
     const myCanvas = new canvas.Canvas(width, height);
     const ctx = myCanvas.getContext('2d');
+    const upperCaseLetter = letter.toUpperCase();
 
     // Choose a random color for the background
-    const randomColor = '#' + Math.floor(Math.random()*16777215).toString(16);
+    // const randomColor = '#' + Math.floor(Math.random()*16777215).toString(16);
+
+    // chat-gpt generated
+    const backgroundColors = {
+        A: '#FF5733', // Red
+        B: '#33FF57', // Green
+        C: '#3357FF', // Blue
+        D: '#FF33A1', // Pink
+        E: '#A133FF', // Purple
+        F: '#FF8C33', // Orange
+        G: '#33FFF3', // Aqua
+        H: '#5733FF', // Indigo
+        I: '#FF3333', // Bright Red
+        J: '#33FF8C', // Lime
+        K: '#33A1FF', // Sky Blue
+        L: '#FF33F3', // Magenta
+        M: '#FFB833', // Gold
+        N: '#33FFB8', // Light Green
+        O: '#5733A1', // Dark Purple
+        P: '#FF338C', // Deep Pink
+        Q: '#8C33FF', // Violet
+        R: '#FF5733', // Tomato
+        S: '#33FF57', // Spring Green
+        T: '#3357FF', // Dodger Blue
+        U: '#FF33A1', // Hot Pink
+        V: '#A133FF', // Medium Purple
+        W: '#FF8C33', // Dark Orange
+        X: '#33FFF3', // Cyan
+        Y: '#5733FF', // Dark Slate Blue
+        Z: '#FF3333'  // Crimson
+    };
 
     // Set the background color
-    ctx.fillStyle = randomColor;
+    ctx.fillStyle = backgroundColors[upperCaseLetter];
     ctx.fillRect(0, 0, width, height);
 
     // Set up text properties for drawing the letter
@@ -340,7 +362,7 @@ function generateAvatar(letter, width = 100, height = 100) {
     const y = height / 2;
 
     // Draw the letter in the center
-    ctx.fillText(letter, x, y);
+    ctx.fillText(upperCaseLetter, x, y);
 
     // Return the avatar as a PNG buffer
     return myCanvas.toBuffer('image/png');
@@ -366,7 +388,7 @@ function getCurTime() {
     if (minute.toString().length == 1) {
          minute = '0'+minute;
     }
-    return year+'-'+month+'-'+day+' '+hour+':'+minute;
+    return `${year}-${month}-${day} ${hour}:${minute}`;
 }
 
 function statusCheck(res) {
