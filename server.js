@@ -2,6 +2,7 @@ const express = require('express');
 const expressHandlebars = require('express-handlebars');
 const session = require('express-session');
 const canvas = require('canvas');
+require('dotenv').config();
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // Configuration and Setup
@@ -120,6 +121,13 @@ app.get('/error', (req, res) => {
 });
 
 // Additional routes that you must implement
+
+app.get('/emojis', (req, res) => {
+    fetch(`https://emoji-api.com/emojis?access_key=${process.env.EMOJI_API_KEY}`)
+    .then(response => response.json())
+    .then(response => res.send(response))
+    .catch(error => console.error(error));
+});
 
 app.post('/posts', (req, res) => {
     addPost(req.body.title, req.body.content, req.body.username);
@@ -333,3 +341,10 @@ function getCurTime() {
     }
     return year+'-'+month+'-'+day+' '+hour+':'+minute;
 }
+
+function statusCheck(res) {
+    if (!res.ok) {
+        throw new Error('Failed to fetch: ' + res.statusText);
+    }
+    return res.json();  // Assuming the response is in JSON format
+    }

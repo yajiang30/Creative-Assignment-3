@@ -11,8 +11,8 @@
                 <!-- title input field name = "title" -->
                 <!-- text area input field name = "content" -->
                 <input type="hidden" name="username" value="{{user.username}}">
-                <input type="text" id="title" name="title" placeholder="Title">
-                <input type="text" id="content" name="content" placeholder="What's on your mind {{user.username}}?">
+                <input type="text" id="title" name="title" placeholder="Title" required>
+                <input type="text" id="content" name="content" placeholder="What's on your mind {{user.username}}?" required>
                 <div class="form-actions">
                     <button type="button" class="emoji-button" onclick="toggleEmojiPanel()">😀</button>
                     <button type="submit" class="post-button">Post</button>
@@ -47,7 +47,6 @@
 
 {{! JavaScript for Emoji Integration }}
 <script>
-
 /*
  You want to show a subset of the emojis. About 200. However,
  you also want the user to be able to search all emojis,
@@ -58,6 +57,7 @@
 let allEmojis = [];  // Global list to hold all emojis
 
 async function toggleEmojiPanel() {
+    console.log('yes');
     const container = document.getElementById('emoji-container');
     container.style.display = container.style.display === 'none' ? 'block' : 'none';
 
@@ -65,11 +65,12 @@ async function toggleEmojiPanel() {
     if(container.style.display === 'block' && allEmojis.length == 0){
         // go "Fetch" you some emojis and show them off with displayEmojies
         try{
-            let res = await fetch('https://emoji-api.com/emojis?access_key={{API_KEY}}');
+            let res = await fetch('/emojis');
             if (!res.ok) {
                 throw new error('Error fetching emojis');
             }
             allEmojis = await res.json();
+            console.log(allEmojis);
             displayEmojis(allEmojis);
         } catch (error) {
             console.error(error);
