@@ -25,13 +25,18 @@ header {
     align-items: center;
 }
 
-.logo img {
+.header-logo, .header-avatar {
     width: 50px; /* Adjust size as needed */
     height: auto; /* Maintain aspect ratio */
+    border-radius: 10px;
 }
 
-.logo h1 {
+h1 {
+    padding-top: 10px;
+    padding-bottom: -10px;
     margin-left: 10px;
+    font-size: 30px;
+    color: #fff;
 }
 
 nav ul {
@@ -40,7 +45,13 @@ nav ul {
 }
 
 nav ul li {
+    margin: auto;
     margin-right: 20px;
+}
+
+a {
+    text-decoration: none;
+    color: #fff; 
 }
 
 nav ul li:last-child {
@@ -56,12 +67,6 @@ footer {
     color: #fff; 
     text-align: center;
     padding: 10px 0;
-}
-
-h1 {
-    padding-top: 10px;
-    padding-bottom: -10px;
-    font-size: medium;
 }
 
 input {

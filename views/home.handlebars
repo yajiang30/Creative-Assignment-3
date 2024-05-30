@@ -31,6 +31,15 @@
     <section class="posts-list">
         <!-- recent posts -->
         <h2>Recent {{postNeoType}}s</h2>
+        <label for="sort-options">Sort By:</label> 
+            <select name="sort-options" id="sort-options"> 
+                <option value="time-desc">Newest</option> 
+                <option value="time-asc">Oldest</option> 
+                <option value="title-desc">Alphabetical (A-Z)</option> 
+                <option value="title-asc">Reverse Alphabetical (Z-A)</option> 
+                <option value="likes-desc">Most Popular</option> 
+                <option value="likes-asc">Least Popular</option> 
+            </select>
         {{#if posts.length}}
         <ul>
             {{#each posts}}
@@ -58,7 +67,6 @@
 let allEmojis = [];  // Global list to hold all emojis
 
 async function toggleEmojiPanel() {
-    console.log('yes');
     const container = document.getElementById('emoji-container');
     container.style.display = container.style.display === 'none' ? 'block' : 'none';
 
@@ -71,7 +79,6 @@ async function toggleEmojiPanel() {
                 throw new error('Error fetching emojis');
             }
             allEmojis = await res.json();
-            console.log(allEmojis);
             displayEmojis(allEmojis);
         } catch (error) {
             console.error(error);

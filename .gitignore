@@ -1,3 +1,5 @@
 node_modules
 .env
 CA-3A.bundle
+your_database_file.db
+showdb.js
