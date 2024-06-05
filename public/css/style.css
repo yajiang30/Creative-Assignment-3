@@ -192,15 +192,15 @@ h2 {
     display: flex;
     flex-direction: column;
     align-items: center;
-    margin: 0 20%;
     padding-bottom: 2.5rem;
+    width: 40%;
 }
 
 .post-form {
     display: flex;
     flex-direction: column;
     align-items: center;
-    margin: 0 20%;
+    width: 40%;
 }
 
 #emoji-container, #post-submit-form, #emoji-search, #emoji-grid, #title, #content, .form-actions {
@@ -243,24 +243,26 @@ button {
 
 .content-container {
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
     min-width: 100%;
     padding-bottom: 2.5rem;
+    justify-content: space-evenly;
 }
 
 @media (max-width: 768px) {
     .content-container {
         display: flex;
-        flex-direction: row;
+        flex-direction: column;
         min-width: 100%;
         padding-bottom: 2.5rem;
+        align-items: center;
     }
     
     .posts-list, .user-posts { /* Home/Profile posts */
         display: flex;
         flex-direction: column;
         align-items: center;
-        margin: 0 20%;
+        margin: 0 5%;
         padding-bottom: 2.5rem;
     }
     
@@ -268,7 +270,7 @@ button {
         display: flex;
         flex-direction: column;
         align-items: center;
-        margin: 0 20%;
+        margin: 0 5%;
     }
 }
 
