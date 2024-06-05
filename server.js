@@ -64,15 +64,12 @@ app.get('/auth/google/callback', async (req, res) => {
     const hashGoogleId = hashCode(googleId);
     
     // Check if the Google ID is already associated with a user in your database
-    console.log("before finduserbygoogleid call");
     const existingUser = await findUserByGoogleId(hashGoogleId);
     if (existingUser) {
         // User already exists, set user ID in session
-        console.log("inside existing user")
         req.session.userId = existingUser.hashedGoogleId;
         req.session.loggedIn = true;
         res.redirect('/profile');
-        console.log("out existing user");
     } else {
         // User doesn't exist, redirect to register
         res.redirect('/register');
@@ -233,6 +230,9 @@ app.post('/posts', async (req, res) => {
 app.post('/like/:id', async (req, res) => {
     await updatePostLikes(req, res);
 });
+app.post('/dislike/:id', async (req, res) => {
+    await updatePostDislikes(req, res);
+});
 app.get('/profile', isAuthenticated, async (req, res) => {
     await renderProfile(req, res);
 });
@@ -250,9 +250,6 @@ app.get('/logout', (req, res) => {
 });
 app.post('/delete/:id', isAuthenticated, (req, res) => {
     deletePost(req, res);
-});
-app.post('/edit/:id', isAuthenticated, (req, res) => {
-    editPost(req, res);
 });
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -284,10 +281,8 @@ async function findUserByUsername(username) {
 
 // Function to find a user by user ID
 async function findUserById(userId) {
-    console.log("before finduserbyid call",userId);
     // const userIdFromDB = await db.get(`SELECT * FROM users WHERE hashedGoogleId = '${userId}'`);
     const userIdFromDB = await db.get('SELECT * FROM users WHERE hashedGoogleId = ?', [userId]);
-    console.log("finduserid db value",userIdFromDB,userId);
     if (userIdFromDB) {
         return userIdFromDB;
     }
@@ -296,10 +291,7 @@ async function findUserById(userId) {
 
 // Function to find a user by Google ID
 async function findUserByGoogleId(hashGoogleId) {
-    console.log("insdie the finduserbygoogleid");
     const user = await db.get('SELECT * FROM users WHERE hashedGoogleId = ?', [hashGoogleId]);
-    console.log(user, " HIII");
-    console.log("^^^");
     return user;
 }
 
@@ -338,7 +330,6 @@ async function registerUser(req, res) {
     } else {
         await addUser(username);
         const newUser = await findUserByUsername(username);
-        console.log(`newUser = ${newUser}`);
         if (newUser) {
             req.session.userId = newUser.hashedGoogleId;
             req.session.loggedIn = true;
@@ -404,6 +395,18 @@ async function updatePostLikes(req, res) {
     res.json(likes);
 }
 
+async function updatePostDislikes(req, res) {
+    const postId = parseInt(req.params.id);
+    const curUser = await getCurrentUser(req);
+    if (curUser) {
+        // if user is logged in
+        await db.run(`UPDATE posts SET likes = likes - 1 WHERE id = ${postId}`);
+    }
+    // send response w/ numLikes
+    const likes = await db.get(`SELECT likes FROM posts WHERE id = ${postId}`);
+    res.json(likes);
+}
+
 // Function to handle avatar generation and serving
 function handleAvatar(req, res) {
     let username = req.params.username;
@@ -437,18 +440,6 @@ async function addPost(title, content, user) {
 }
 
 async function deletePost(req, res) {
-    const postId = parseInt(req.params.id);
-    const curPost = await db.get(`SELECT * FROM posts WHERE id = ${postId}`);
-    const curPostUser = await findUserByUsername(curPost.username);
-    const curUser = await getCurrentUser(req);
-    if (curPostUser.id === curUser.id) {
-        // post exist and the current user is owner
-        await db.run(`DELETE FROM posts WHERE id = ${postId}`);
-        res.json({success: true});
-    }
-}
-
-async function editPost(req, res) {
     const postId = parseInt(req.params.id);
     const curPost = await db.get(`SELECT * FROM posts WHERE id = ${postId}`);
     const curPostUser = await findUserByUsername(curPost.username);

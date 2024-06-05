@@ -176,12 +176,16 @@ h3 {
     padding-top: 1.5%;
 }
 
-.like-button:hover, .delete-button:hover {
+.dislike-button:hover {
     color: red; 
 }
 
-.edit-button:hover {
-    color: yellow;
+.like-button:hover {
+    color: green;
+}
+
+.delete-button:hover {
+    color: black;
 }
 
 /* HOMEPAGE CSS*/
@@ -195,6 +199,9 @@ h2 {
     align-items: center;
     padding-bottom: 2.5rem;
     width: 40%;
+}
+
+.user-posts {
     margin: 0 30%;
 }
 
