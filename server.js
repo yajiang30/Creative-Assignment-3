@@ -1,3 +1,5 @@
+const { google } = require('googleapis');
+const { OAuth2Client } = require('google-auth-library');
 const express = require('express');
 const expressHandlebars = require('express-handlebars');
 const session = require('express-session');
@@ -8,6 +10,12 @@ const sqlite3 = require('sqlite3');
 const dbFileName = 'your_database_file.db';
 let db;
 
+const passport = require('passport');
+const GoogleStrategy = require('passport-google-oauth20').Strategy;
+const dotenv = require('dotenv');
+
+dotenv.config();
+
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // Configuration and Setup
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -15,6 +23,78 @@ let db;
 const accessToken = process.env.EMOJI_API_KEY;
 const app = express();
 const PORT = 3000;
+const path = require('path');
+
+const CLIENT_ID = process.env.CLIENT_ID;
+const CLIENT_SECRET = process.env.CLIENT_SECRET;
+const REDIRECT_URI = 'http://localhost:3000/auth/google/callback';
+const client = new OAuth2Client(CLIENT_ID, CLIENT_SECRET, REDIRECT_URI);
+
+app.use(
+    session({
+        secret: 'oneringtorulethemall',
+        resave: false,
+        saveUninitialized: false,
+        cookie: { secure: false },
+    })
+);
+
+
+app.get('/auth/google', (req, res) => {
+    const url = client.generateAuthUrl({
+        access_type: 'offline',
+        scope: ['https://www.googleapis.com/auth/userinfo.email', 'https://www.googleapis.com/auth/userinfo.profile'],
+    });
+    res.redirect(url);
+});
+
+
+app.get('/auth/google/callback', async (req, res) => {
+    const { code } = req.query;
+    const { tokens } = await client.getToken(code);
+    client.setCredentials(tokens);
+
+    const oauth2 = google.oauth2({
+        auth: client,
+        version: 'v2',
+    });
+
+    const userinfo = await oauth2.userinfo.get();
+    const googleId = userinfo.data.id; // Get Google ID
+    const hashGoogleId = hashCode(googleId);
+    
+    // Check if the Google ID is already associated with a user in your database
+    console.log("before finduserbygoogleid call");
+    const existingUser = await findUserByGoogleId(hashGoogleId);
+    if (existingUser) {
+        // User already exists, set user ID in session
+        console.log("inside existing user")
+        req.session.userId = existingUser.hashedGoogleId;
+        req.session.loggedIn = true;
+        res.redirect('/profile');
+        console.log("out existing user");
+    } else {
+        // User doesn't exist, redirect to register
+        res.redirect('/register');
+    }
+});
+
+
+passport.use(new GoogleStrategy({
+    clientID: CLIENT_ID,
+    clientSecret: CLIENT_SECRET,
+    callbackURL: `http://localhost:${PORT}/auth/google/callback`
+}, (token, tokenSecret, profile, done) => {
+    return done(null, profile);
+}));
+
+passport.serializeUser((user, done) => {
+    done(null, user);
+});
+
+passport.deserializeUser((obj, done) => {
+    done(null, obj);
+});
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -204,23 +284,36 @@ async function findUserByUsername(username) {
 
 // Function to find a user by user ID
 async function findUserById(userId) {
-    let userIdFromDB;
-    if (userId) {
-        userIdFromDB = await db.get(`SELECT * FROM users WHERE id = ${userId}`);
-    } 
+    console.log("before finduserbyid call",userId);
+    // const userIdFromDB = await db.get(`SELECT * FROM users WHERE hashedGoogleId = '${userId}'`);
+    const userIdFromDB = await db.get('SELECT * FROM users WHERE hashedGoogleId = ?', [userId]);
+    console.log("finduserid db value",userIdFromDB,userId);
     if (userIdFromDB) {
         return userIdFromDB;
     }
     return undefined;
 }
 
+// Function to find a user by Google ID
+async function findUserByGoogleId(hashGoogleId) {
+    console.log("insdie the finduserbygoogleid");
+    const user = await db.get('SELECT * FROM users WHERE hashedGoogleId = ?', [hashGoogleId]);
+    console.log(user, " HIII");
+    console.log("^^^");
+    return user;
+}
+
 // Function to add a new user
 async function addUser(username) {
-    // comment this out after partner sends me OAUTH code
-    const googleId = Math.floor(1000000 * Math.random());
-    const hashGoogleId = `hashGoogleId${googleId}`;
-    // To-do: hashGoogleId
-    // hashGoogleId = hashCode(...);
+    const oauth2 = google.oauth2({
+        auth:client,
+        version:'v2',
+    });
+    const userinfo =await oauth2.userinfo.get();
+    const googleId=userinfo.data.id;
+    
+    const hashGoogleId = hashCode(googleId);
+
     await db.run(
         'INSERT INTO users (username, hashedGoogleId, avatar_url, memberSince) VALUES (?, ?, ?, ?)',
         [username, hashGoogleId, undefined, getCurTime()]
@@ -244,7 +337,15 @@ async function registerUser(req, res) {
         res.redirect('/register?error=Username+already+exists');
     } else {
         await addUser(username);
-        res.redirect('/login');
+        const newUser = await findUserByUsername(username);
+        console.log(`newUser = ${newUser}`);
+        if (newUser) {
+            req.session.userId = newUser.hashedGoogleId;
+            req.session.loggedIn = true;
+            res.redirect('/');
+        } else {
+            res.redirect('/login?error=Invalid+username');
+        }
     }
 }
 
@@ -339,7 +440,8 @@ async function deletePost(req, res) {
     const postId = parseInt(req.params.id);
     const curPost = await db.get(`SELECT * FROM posts WHERE id = ${postId}`);
     const curPostUser = await findUserByUsername(curPost.username);
-    if (curPostUser.id === req.session.userId) {
+    const curUser = await getCurrentUser(req);
+    if (curPostUser.id === curUser.id) {
         // post exist and the current user is owner
         await db.run(`DELETE FROM posts WHERE id = ${postId}`);
         res.json({success: true});
@@ -350,7 +452,8 @@ async function editPost(req, res) {
     const postId = parseInt(req.params.id);
     const curPost = await db.get(`SELECT * FROM posts WHERE id = ${postId}`);
     const curPostUser = await findUserByUsername(curPost.username);
-    if (curPostUser.id === req.session.userId) {
+    const curUser = await getCurrentUser(req);
+    if (curPostUser.id === curUser.id) {
         // post exist and the current user is owner
         await db.run(`DELETE FROM posts WHERE id = ${postId}`);
         res.json({success: true});

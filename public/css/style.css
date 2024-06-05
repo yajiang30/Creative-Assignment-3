@@ -104,14 +104,15 @@ input {
     
 }
 
-.login-area {
-    margin-right: 20px; /* Add some space between the boxes */
+/* .login-area {
+    margin-right: 20px; Add some space between the boxes
     margin-left: 30%;
-}
+} */
 
 .register-area {
-    margin-left: 20px; /* Add some space between the boxes */
-    margin-right: 30%;
+    margin-top: 10%;
+    margin-left: 40%; /* Add some space between the boxes */
+    margin-right: 40%;
 }
 
 .login-area form,
