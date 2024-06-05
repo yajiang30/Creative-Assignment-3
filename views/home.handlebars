@@ -7,12 +7,13 @@
         <!-- show the create post form when logged in -->
         <section class="post-form">
             <!-- make a header here -->
-            <form action="/posts" method="POST">
+            <h2>Create a new Yap</h2>
+            <form action="/posts" method="POST" id="post-submit-form">
                 <!-- title input field name = "title" -->
                 <!-- text area input field name = "content" -->
                 <input type="hidden" name="username" value="{{user.username}}">
-                <input type="text" id="title" name="title" placeholder="Title" required>
-                <input type="text" id="content" name="content" placeholder="What's on your mind {{user.username}}?" required>
+                <input type="text" id="title" name="title" placeholder="Title" autocomplete="off" required>
+                <textarea id="content" name="content" placeholder="What's on your mind {{user.username}}?" autocomplete="off" style="white-space: normal;" required></textarea>
                 <div class="form-actions">
                     <button type="button" class="emoji-button" onclick="toggleEmojiPanel()">😀</button>
                     <button type="submit" class="post-button">{{postNeoType}} (Post)</button>
@@ -22,7 +23,7 @@
             <div id="emoji-container" class="emoji-panel" style="display: none;">
                 <!-- input field for the emoji search, use oninput="searchEmojis() -->
                 <!-- a div, id = "emoji-grid" -->
-                <input type="text" id="emoji-search" name="emoji-searchbar" placeholder="Search for an emoji" oninput="searchEmojis()">
+                <input type="text" id="emoji-search" name="emoji-searchbar" placeholder="Search for an emoji" autocomplete="off" oninput="searchEmojis()">
                 <div id="emoji-grid"></div>
             </div>
         </section>
@@ -31,15 +32,18 @@
     <section class="posts-list">
         <!-- recent posts -->
         <h2>Recent {{postNeoType}}s</h2>
-        <label for="sort-options">Sort By:</label> 
-            <select name="sort-options" id="sort-options"> 
-                <option value="time-desc">Newest</option> 
-                <option value="time-asc">Oldest</option> 
-                <option value="title-desc">Alphabetical (A-Z)</option> 
-                <option value="title-asc">Reverse Alphabetical (Z-A)</option> 
-                <option value="likes-desc">Most Popular</option> 
-                <option value="likes-asc">Least Popular</option> 
+        <form action="/sort" method="POST" id="sort-form">
+            <label for="sort-options">Sort By:</label>
+            <select name="sort-options" id="sort-options">
+                <option value="time-desc">Newest</option>
+                <option value="time-asc">Oldest</option>
+                <option value="title-asc">Alphabetical Case Sensitive (A-Z)</option>
+                <option value="title-desc">Reverse Alphabetical Case Sensitive (Z-A)</option>
+                <option value="likes-desc">Most Popular</option>
+                <option value="likes-asc">Least Popular</option>
             </select>
+            <button type="submit">Sort</button>
+        </form>
         {{#if posts.length}}
         <ul>
             {{#each posts}}

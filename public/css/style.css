@@ -6,8 +6,14 @@
     /* outline:1px solid red; */
 }
 
+html {
+    background: whitesmoke;
+}
+
 body {
     font-family: Arial, sans-serif;
+    position: relative;
+    min-height: 100vh;
 }
 
 /* Header styles */
@@ -35,7 +41,7 @@ h1 {
     padding-top: 10px;
     padding-bottom: -10px;
     margin-left: 10px;
-    font-size: 30px;
+    font-size: 2.5rem;
     color: #fff;
 }
 
@@ -67,6 +73,10 @@ footer {
     color: #fff; 
     text-align: center;
     padding: 10px 0;
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    height: 2.5rem;
 }
 
 input {
@@ -127,4 +137,190 @@ input {
     padding-top: 10px;
     padding-bottom: 10px;
     border-radius: 8px;
+}
+
+/* POSTS CSS */
+h3 {
+    font-size: 1.5rem;
+}
+
+.post {
+    border: 1px solid lightgray;
+    background-color: whitesmoke;
+    border-radius: 5px;
+    display: flex;
+    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.2);
+    padding: 1%;
+    margin: 2% 0;
+}
+
+.post-title {
+    padding-bottom: 1%;
+}
+
+.post-text {
+    padding-bottom: 1%;
+}
+
+.post-content {
+    width: auto;
+    height: auto;
+    margin-left: 5%;
+}
+
+.post-status-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 1.5%;
+}
+
+.like-button:hover, .delete-button:hover {
+    color: red; 
+}
+
+.edit-button:hover {
+    color: yellow;
+}
+
+/* HOMEPAGE CSS*/
+h2 {
+    font-size: 2rem;
+}
+
+.posts-list, .user-posts { /* Home/Profile posts */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 0 20%;
+    padding-bottom: 2.5rem;
+}
+
+.post-form {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 0 20%;
+}
+
+#emoji-container, #post-submit-form, #emoji-search, #emoji-grid, #title, #content, .form-actions {
+    width: 100%;
+    margin: 0.5% 0;
+}
+
+#content {
+    height: 10rem;
+    text-align: start;
+}
+
+.post-button {
+    width: 90%;
+    float: right
+}
+
+.emoji-button {
+    width: 8%;
+    float: left;
+}
+
+emoji-container {
+    width: 100%;
+}
+
+button {
+    background-color: lightblue;
+    border: none;
+    color: #fff;
+    padding: 1%;
+    border-radius: 20px;
+}
+
+#sort-form {
+    display: flex;
+    flex-direction: row;
+    gap: 2%;
+}
+
+.content-container {
+    display: flex;
+    flex-direction: column;
+    min-width: 100%;
+    padding-bottom: 2.5rem;
+}
+
+@media (max-width: 768px) {
+    .content-container {
+        display: flex;
+        flex-direction: row;
+        min-width: 100%;
+        padding-bottom: 2.5rem;
+    }
+    
+    .posts-list, .user-posts { /* Home/Profile posts */
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        margin: 0 20%;
+        padding-bottom: 2.5rem;
+    }
+    
+    .post-form {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        margin: 0 20%;
+    }
+}
+
+/* Profile CSS */
+.profile-container {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+}
+
+.profile-info {
+    border: 1px solid lightgray;
+    background-color: whitesmoke;
+    border-radius: 5px;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.2);
+    padding: 1%;
+    margin: 2% 0;
+    margin-right: 25%;
+    min-width: 50%;
+
+}
+
+.profile-container .profile-avatar .header-avatar {
+    min-width: 400%;
+}
+
+.profile-container .profile-avatar {
+    float: left;
+    padding: 3% 0 0 3%;
+}
+
+@media (max-width: 768px) {
+    .profile-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .profile-info {
+        padding: 1%;
+        margin: 2% 0;
+    }
+    
+    .profile-container .profile-avatar .header-avatar {
+        min-width: 400%;
+    }
+    
+    .profile-container .profile-avatar {
+        margin: 0;
+        padding: 0;
+        margin-right: 25%;
+    }
 }

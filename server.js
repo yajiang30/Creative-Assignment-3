@@ -57,6 +57,9 @@ app.engine(
                 }
                 return options.inverse(this);
             },
+            eq: function(a, b) {
+                return a === b;
+            }
         },
     })
 );
@@ -103,14 +106,22 @@ app.use(express.json());                            // Parse JSON bodies (as sen
 // template
 //
 app.get('/', async (req, res) => {
-    const posts = await getPosts();
-    const user = await getCurrentUser(req) || {};
+    const sortOption = 'time-desc';
+    const posts = await getPosts(sortOption);
+    const user = await getCurrentUser(req);
+    res.render('home', { posts, user });
+});
+
+app.post('/sort', async (req, res) => {
+    const sortOption = req.body['sort-options'];
+    const posts = await getPosts(sortOption);
+    const user = await getCurrentUser(req);
     res.render('home', { posts, user });
 });
 
 // Register GET route is used for error response from registration
 //
-app.get('/register', (req, res) => {
+app.get('/register', async (req, res) => {
     res.render('loginRegister', { regError: req.query.error });
 });
 
@@ -160,6 +171,9 @@ app.get('/logout', (req, res) => {
 app.post('/delete/:id', isAuthenticated, (req, res) => {
     deletePost(req, res);
 });
+app.post('/edit/:id', isAuthenticated, (req, res) => {
+    editPost(req, res);
+});
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // Server Activation
@@ -190,7 +204,10 @@ async function findUserByUsername(username) {
 
 // Function to find a user by user ID
 async function findUserById(userId) {
-    const userIdFromDB = await db.get(`SELECT * FROM users WHERE id = '${userId}'`);
+    let userIdFromDB;
+    if (userId) {
+        userIdFromDB = await db.get(`SELECT * FROM users WHERE id = ${userId}`);
+    } 
     if (userIdFromDB) {
         return userIdFromDB;
     }
@@ -259,9 +276,18 @@ function logoutUser(req, res) {
 
 // Function to render the profile page
 async function renderProfile(req, res) {
-    const user = await getCurrentUser(req) || {};
-    const userPosts = await db.all(`SELECT * FROM posts WHERE username = ${user.username}`);
-    res.render('profile', {userPosts, user});
+    const user = await getCurrentUser(req);
+    const userPosts = await db.all(`SELECT * FROM posts WHERE username = '${user.username}'`);
+    const numLikes = userLifetimeLikeCount(userPosts);
+    res.render('profile', {userPosts, user, numLikes});
+}
+
+function userLifetimeLikeCount(userPosts) {
+    let numLikes = 0;
+    for (let i = 0; i < userPosts.length; i++) {
+        numLikes += userPosts[i].likes;
+    }
+    return numLikes;
 }
 
 // Function to update post likes
@@ -289,8 +315,16 @@ async function getCurrentUser(req) {
 }
 
 // Function to get all posts, sorted by latest first
-async function getPosts() {
-    return await db.all('SELECT * FROM posts ORDER BY timestamp DESC');
+async function getPosts(option) {
+    const dict = {
+        'time-desc': 'timestamp DESC',
+        'time-asc': 'timestamp ASC',
+        'title-desc': 'title DESC',
+        'title-asc': 'title ASC',
+        'likes-desc': 'likes DESC',
+        'likes-asc': 'likes ASC'
+    };
+    return await db.all(`SELECT * FROM posts ORDER BY ${dict[option]}`);
 }
 
 // Function to add a new post
@@ -302,6 +336,17 @@ async function addPost(title, content, user) {
 }
 
 async function deletePost(req, res) {
+    const postId = parseInt(req.params.id);
+    const curPost = await db.get(`SELECT * FROM posts WHERE id = ${postId}`);
+    const curPostUser = await findUserByUsername(curPost.username);
+    if (curPostUser.id === req.session.userId) {
+        // post exist and the current user is owner
+        await db.run(`DELETE FROM posts WHERE id = ${postId}`);
+        res.json({success: true});
+    }
+}
+
+async function editPost(req, res) {
     const postId = parseInt(req.params.id);
     const curPost = await db.get(`SELECT * FROM posts WHERE id = ${postId}`);
     const curPostUser = await findUserByUsername(curPost.username);

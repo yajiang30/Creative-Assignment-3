@@ -12,20 +12,31 @@
     </div>
     <div class="post-content preserve-newlines">
         <!-- the post -->
-        <h3>{{this.title}}</h3>
-        <p>{{this.content}}</p>
+        <h3 class="post-title">{{this.title}}</h3>
+        <p class="post-text">{{this.content}}</p>
+        <hr>
         <div class="post-status-bar">
             <!-- everything that is shown in the status bar -->
             <!-- Heart = ♥ -->
             <!-- font awesome  trashcan = <i class="fas fa-trash-alt"> </i>-->
             {{#ifCond this.username user.username}}
                 <button data-id="{{this.id}}" class="delete-button" onclick="handleDeleteClick(event)"><i class="fas fa-trash-alt"></i></button>
+                <button data-id="{{this.id}}" class="edit-button" onclick="handleEditClick(event)"><i class="fas fa-pencil-alt"></i></button>
             {{else}}
                 <button data-id="{{this.id}}" class="like-button" onclick="handleLikeClick(event)">♥</button>
             {{/ifCond}}
             <p class="like-count">{{this.likes}} Likes</p>
             <p>Posted by {{this.username}} on {{this.timestamp}}</p>
         </div>        
+    </div>
+    <div id="edit-container" style="display: none;">
+        <form id="edit-post-form">
+            <label for="title">Title:</label>
+            <input type="text" id="title" name="title" autocomplete="off" required>
+            <label for="content">Content:</label>
+            <textarea id="content" name="content" autocomplete="off" required></textarea>
+            <button type="submit">Save</button>
+        </form>
     </div>
 </div>
 <script>
@@ -57,6 +68,22 @@
 
         location.reload();
     }    
+
+    function handleEditClick(event) {
+        const editContainer = document.getElementById('edit-container');
+        editContainer.style = 'display: block';
+        const buttonElement = event.target.closest('.edit-button');
+        const postId = buttonElement.getAttribute('data-id');        
+
+        // you might want to "fetch" something... 
+        fetch(`/edit/${postId}`, {
+            method: 'POST'
+        })
+        .then(statusCheck)
+        .then(res => processData(res, postId))
+        .catch(error => console.error(error));
+
+    } 
 
     function updateLikeCount(res, postId) {
         let post = document.getElementById(`post${postId}`);
